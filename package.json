@@ -1,0 +1,30 @@
+{
+  "name": "single-resource-api-deliverable",
+  "version": "1.0.0",
+  "description": "Full stack up app with cars",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blkurd/Single-Resource-API-deliverable.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/blkurd/Single-Resource-API-deliverable/issues"
+  },
+  "homepage": "https://github.com/blkurd/Single-Resource-API-deliverable#readme",
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "mongoose": "^6.8.4",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
