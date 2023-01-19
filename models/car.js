@@ -21,4 +21,4 @@ const Car = model('Car', carSchema)
 
 // Export our Model 
 
-module.exports = Car
+module.exports = Car;
