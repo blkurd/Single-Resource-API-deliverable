@@ -1,6 +1,7 @@
 
-//// Our schema and model for the car resource          
-const mongoose = require('mongoose') // import mongoose
+
+
+const mongoose = require('../utils/connection') // import mongoose
 
 // we'll destructure the Schema and model functions from mongoose
 const { Schema, model } = mongoose
@@ -22,5 +23,3 @@ const Car = model('Car', carSchema)
 // Export our Model 
 
 module.exports = Car;
-
-// trying 
