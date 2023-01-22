@@ -9,29 +9,6 @@ const router = express.Router();
 
 // Routes
 
-// we're going to build a seed route
-// this will seed the database for us with a few starter resources
-// There are two ways we will talk about seeding the database
-// First -> seed route, they work but they are not best practices
-// Second -> seed script, they work and they ARE best practices
-router.get("/seed", (req, res) => {
-  // array of starter resources(cars)
-  const cars = [
-    { name: "Ferari", color: "red", readyToRide: true },
-    { name: "Volvo", color: "black", readyToRide: true },
-    { name: "BMW", color: "blue", readyToRide: false },
-  ];
-  // then we delete every car in the database(all instances of this resource)
-  Car.deleteMany({}).then(() => {
-    // then we'll seed(create) our starter cars
-    Car.create(cars)
-      // tell our db what to do with success and failures
-      .then((data) => {
-        res.json(data);
-      })
-      .catch((err) => console.log("The following error occurred: \n", err));
-  });
-});
 
 // INDEX route
 // Read -> finds and displays all cars
