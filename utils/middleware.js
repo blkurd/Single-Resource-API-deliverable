@@ -25,16 +25,16 @@ const middleware = (app) => {
     // this secret is kinda like authorization, that allows our app to create with connectMongo
     // store -> tells connect-mongo where to save the session(our db)
     // then two options: saveUninitialized(set to true) and resave(set to false)
-//     app.use(
-//         session({
-//             secret: process.env.SECRET,
-//             store: MongoStore.create({
-//                 mongoUrl: process.env.DATABASE_URL
-//             }),
-//             saveUninitialized: true,
-//             resave: false
-//         })
-//     )
+    app.use(
+        session({
+            secret: process.env.SECRET,
+            store: MongoStore.create({
+                mongoUrl: process.env.DATABASE_URL
+            }),
+            saveUninitialized: true,
+            resave: false
+        })
+    )
 }
 
 ///////////////////////////////////////////
