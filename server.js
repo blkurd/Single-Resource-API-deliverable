@@ -7,14 +7,14 @@ require('dotenv').config() // Load my ENV file's variables
 const path = require('path') // import path module
 const CarRouter = require('./controllers/carControllers')
 const UserRouter = require('./controllers/userControllers')
-// const CommentRouter = require('./controllers/commentControllers')
+const CommentRouter = require('./controllers/commentControllers')
 const middleware = require('./utils/middleware')
 
 /////////////////////////////////////
 //// Create our Express App Object //
 /////////////////////////////////////
-const app = express()
-
+// const app = express()
+const app = require('liquid-express-views')(express())
 /////////////////////////////////////
 //// Middleware                  ////
 /////////////////////////////////////
@@ -28,14 +28,14 @@ middleware(app)
 //// Routes                      ////
 /////////////////////////////////////
 app.get('/', (req, res) => {
-    res.send('Server is live, ready for requests')
+    res.render('home.liquid')
 })
 
 // This is now where we register our routes, this is how server.js knows to send the correc response. 
 // app.use, when we register a route, needs two arguments
 // the first arg is the base URL, second arg is the file to use.
 app.use('/cars', CarRouter)
-// app.use('/comments', CommentRouter)
+app.use('/comments', CommentRouter)
 app.use('/users', UserRouter)
 
 /////////////////////////////////////

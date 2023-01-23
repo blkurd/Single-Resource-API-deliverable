@@ -5,13 +5,30 @@ const mongoose = require('../utils/connection') // import mongoose
 
 // we'll destructure the Schema and model functions from mongoose
 const { Schema, model } = mongoose
+const commentSchema = require ("./comment")
 
 // cars schema
 const carSchema = new Schema({
-    name: String,
-    color: String,
-    readyToRide: Boolean
-})
+    name: {
+        type: String
+    },
+    color: {
+        type: String
+    },
+    readyToRide: {
+        type: Boolean
+    },
+    owner: {
+        // this is where we set up an objectId reference
+        // by declaring that as the type
+        type: Schema.Types.ObjectId,
+        // this line tells us which model to look at
+        ref: 'User'
+    },
+    comments: [commentSchema]
+}, { timestamps: true })
+
+
 
 // make the car model
 // the model method takes two arguments
