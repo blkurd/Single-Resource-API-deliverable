@@ -1,98 +1,219 @@
-// Import Dependencies
+/////////////////////////////////////
+//// Import Dependencies         ////
+/////////////////////////////////////
+const express = require('express')
+const Car = require('../models/car')
 
-const express = require("express");
-const Car = require("../models/car");
+/////////////////////////////////////
+//// Create Router               ////
+/////////////////////////////////////
+const router = express.Router()
 
-// Create Router
+//////////////////////////////
+//// Routes               ////
+//////////////////////////////
 
-const router = express.Router();
-
-// Routes
-
-
-// INDEX route
+// INDEX route 
 // Read -> finds and displays all cars
-router.get("/", (req, res) => {
-  // find all the cars
-  Car.find({})
-    // send json if successful
-    .then((cars) => {
-      res.json({ cars: cars });
-    })
-    // catch errors if they occur
-    .catch((err) => console.log("The following error occurred: \n", err));
-});
+router.get('/', (req, res) => {
+    const { username, loggedIn, userId } = req.session
+    // find all the cars
+    Car.find({})
+        // there's a built in function that runs before the rest of the promise chain
+        // this function is called populate, and it's able to retrieve info from other documents in other collections
+        .populate('owner', 'username')
+        .populate('comments.author', '-password')
+        // send json if successful
+        .then(cars => { 
+            // res.json({ cars: cars })
+            // now that we have liquid installed, we're going to use render as a response for our controllers
+            res.render('cars/index', { cars, username, loggedIn, userId })
+        })
+        // catch errors if they occur
+        .catch(err => {
+            console.log(err)
+            // res.status(404).json(err)
+            res.redirect(`/error?error=${err}`)
+        })
+})
+
+// GET for the new page
+// shows a form where a user can create a new car
+router.get('/new', (req, res) => {
+    res.render('cars/new', { ...req.session })
+})
 
 // CREATE route
 // Create -> receives a request body, and creates a new document in the database
-router.post("/", (req, res) => {
-  // here, we'll have something called a request body
-  // inside this function, that will be called req.body
-  // we want to pass our req.body to the create method
-  const newCar = req.body;
+router.post('/', (req, res) => {
+    // console.log('this is req.body before owner: \n', req.body)
+    // here, we'll have something called a request body
+    // inside this function, that will be called req.body
+    // we want to pass our req.body to the create method
+    // we want to add an owner field to our car
+    // luckily for us, we saved the user's id on the session object, so it's really easy for us to access that data
+    req.body.owner = req.session.userId
 
-  Car.create(newCar)
-    // send a 201 status, along with the json response of the new car
-    .then((car) => {
-      res.status(201).json({ car: car.toObject() });
-    })
-    // send an error if one occurs
-    .catch((err) => console.log(err));
-});
+    // we need to do a little js magic, to get our checkbox turned into a boolean
+    // here we use a ternary operator to change the on value to send as true
+    // otherwise, make that field false
+    req.body.readyToEat = req.body.readyToEat === 'on' ? true : false
+    const newCar = req.body
+    console.log('this is req.body aka newCar, after owner\n', newCar)
+    Car.create(newCar)
+        // send a 201 status, along with the json response of the new car
+        .then(car => {
+            // in the API server version of our code we sent json and a success msg
+            // res.status(201).json({ car: car.toObject() })
+            // we could redirect to the 'mine' page
+            // res.status(201).redirect('/cars/mine')
+            // we could also redirect to the new car's show page
+            res.redirect(`/cars/${car.id}`)
+        })
+        // send an error if one occurs
+        .catch(err => {
+            console.log(err)
+            // res.status(404).json(err)
+            res.redirect(`/error?error=${err}`)
+        })
+})
+
+// GET route
+// Index -> This is a user specific index route
+// this will only show the logged in user's cars
+router.get('/mine', (req, res) => {
+    // find cars by ownership, using the req.session info
+    Car.find({ owner: req.session.userId })
+        .populate('owner', 'username')
+        .populate('comments.author', '-password')
+        .then(cars => {
+            // if found, display the cars
+            // res.status(200).json({ cars: cars })
+            res.render('cars/index', { cars, ...req.session })
+        })
+        .catch(err => {
+            // otherwise throw an error
+            console.log(err)
+            // res.status(400).json(err)
+            res.redirect(`/error?error=${err}`)
+        })
+})
+
+// GET route for getting json for specific user cars
+// Index -> This is a user specific index route
+// this will only show the logged in user's cars
+router.get('/json', (req, res) => {
+    // find cars by ownership, using the req.session info
+    Car.find({ owner: req.session.userId })
+        .populate('owner', 'username')
+        .populate('comments.author', '-password')
+        .then(cars => {
+            // if found, display the cars
+            res.status(200).json({ cars: cars })
+            // res.render('cars/index', { cars, ...req.session })
+        })
+        .catch(err => {
+            // otherwise throw an error
+            console.log(err)
+            res.status(400).json(err)
+        })
+})
+
+// GET request -> edit route
+// shows the form for updating a car
+router.get('/edit/:id', (req, res) => {
+    // because we're editing a specific car, we want to be able to access the car's initial values. so we can use that info on the page.
+    const carId = req.params.id
+    Car.findById(carId)
+        .then(car => {
+            res.render('cars/edit', { car, ...req.session })
+        })
+        .catch(err => {
+            res.redirect(`/error?error=${err}`)
+        })
+})
 
 // PUT route
-// Update -> updates a specific car
-// PUT replaces the entire document with a new document from the req.body
-// PATCH is able to update specific fields at specific times, but it requires a little more code to
-// ensure that it works properly, so we'll use that later
-router.put("/:id", (req, res) => {
-  // save the id to a variable for easy use later
-  const id = req.params.id;
-  // save the request body to a variable for easy reference later
-  const updatedCar = req.body;
-  // we're going to use the mongoose method:
-  // findByIdAndUpdate
-  // eventually we'll change how this route works, but for now, we'll do everything in one shot, with findByIdAndUpdate
-  Car.findByIdAndUpdate(id, updatedCar, { new: true })
-    .then((car) => {
-      console.log("the newly updated car", car);
-      // update success message will just be a 204 - no content
-      res.sendStatus(204);
-    })
-    .catch((err) => console.log(err));
-});
+// Update -> updates a specific car(only if the car's owner is updating)
+router.put('/:id', (req, res) => {
+    const id = req.params.id
+    req.body.readyToEat = req.body.readyToEat === 'on' ? true : false
+    Car.findById(id)
+        .then(car => {
+            // if the owner of the car is the person who is logged in
+            if (car.owner == req.session.userId) {
+                // send success message
+                // res.sendStatus(204)
+                // update and save the car
+                return car.updateOne(req.body)
+            } else {
+                // otherwise send a 401 unauthorized status
+                // res.sendStatus(401)
+                res.redirect(`/error?error=You%20Are%20not%20allowed%20to%20edit%20this%20car`)
+            }
+        })
+        .then(() => {
+            // console.log('the car?', car)
+            res.redirect(`/cars/mine`)
+        })
+        .catch(err => {
+            console.log(err)
+            // res.status(400).json(err)
+            res.redirect(`/error?error=${err}`)
+        })
+})
 
 // DELETE route
 // Delete -> delete a specific car
-router.delete("/:id", (req, res) => {
-  // get the id from the req
-  const id = req.params.id;
-  // find and delete the car
-  Car.findByIdAndRemove(id)
-    // send a 204 if successful
-    .then(() => {
-      res.sendStatus(204);
-    })
-    // send an error if not
-    .catch((err) => console.log(err));
-});
+router.delete('/:id', (req, res) => {
+    const id = req.params.id
+    Car.findById(id)
+        .then(car => {
+            // if the owner of the car is the person who is logged in
+            if (car.owner == req.session.userId) {
+                // send success message
+                // res.sendStatus(204)
+                // delete the car
+                return car.deleteOne()
+            } else {
+                // otherwise send a 401 unauthorized status
+                // res.sendStatus(401)
+                res.redirect(`/error?error=You%20Are%20not%20allowed%20to%20delete%20this%20car`)
+            }
+        })
+        .then(() => {
+            res.redirect('/cars/mine')
+        })
+        .catch(err => {
+            console.log(err)
+            // res.status(400).json(err)
+            res.redirect(`/error?error=${err}`)
+        })
+})
 
 // SHOW route
 // Read -> finds and displays a single resource
-router.get("/:id", (req, res) => {
-  // get the id -> save to a variable
-  const id = req.params.id;
-  // use a mongoose method to find using that id
-  Car.findById(id)
-    // send the car as json upon success
-    .then((car) => {
-      res.json({ car: car });
-    })
-    // catch any errors
-    .catch((err) => console.log(err));
-});
+router.get('/:id', (req, res) => {
+    // get the id -> save to a variable
+    const id = req.params.id
+    // use a mongoose method to find using that id
+    Car.findById(id)
+        .populate('comments.author', 'username')
+        // send the car as json upon success
+        .then(car => {
+            // res.json({ car: car })
+            res.render('cars/show.liquid', {car, ...req.session})
+        })
+        // catch any errors
+        .catch(err => {
+            console.log(err)
+            // res.status(404).json(err)
+            res.redirect(`/error?error=${err}`)
+        })
+})
+
 
 //////////////////////////////
 //// Export Router        ////
 //////////////////////////////
-module.exports = router;
+module.exports = router
