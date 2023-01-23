@@ -1,0 +1,71 @@
+{% layout 'layout.liquid' %}
+{% block content %}
+    <div class="container-md">
+        <div class="row justify-content-between">
+            <article class="col-5">
+                <hcar.name}}</h2>
+                <h4>
+                    {% if car.readyToEat %}
+                        Ripe and Ready
+                    {% else %}
+                        Not Ripe! Do Not Eat!
+                    {% endif %}
+                </h4>
+                <h4>The color of the car is: {{car.color}}</h4>
+                <div class="colorBox" style="background-color: {{car.color}}"></div>
+                {% if car.owner == userId %}
+                    <hr>
+                    <div class="btn-group">
+                        {%- comment -%}
+                        first button will take us to the edit page
+                        second will actually be a form, that calls our delete route
+                        {%- endcomment -%}
+                        <a href="/cars/edit/{{car.id}}" class="btn btn-primary">Edit {{car.name}}</a>
+                        <form action="/cars/{{car.id}}?_method=DELETE" method="POST">
+                            <input type="submit" class="btn btn-danger" value="Delete {{car.name}}">
+                        </form>
+                    </div>
+                {% endif %}
+            </article>
+            {% if carSpecs %}
+                <div class="carInfo col-3 mt-2 bg-light">
+                    <p class="mt-2">Specs Info:</p>
+                    <p>carGas: {{ carSpecs.carGas }}</p>
+                    <p>oil: {{ carSpecs.oil }}</p>
+                    <p>engine: {{ carSpecs.engine }}</p>
+                    <p>weels: {{ carSpecs.weels }}</p>
+                    <p>yearOfProduction: {{ carSpecs.yearOfProduction }}</p>
+                </div>
+            {% endif %}
+        </div>
+        <hr>
+        <h4>comments</h4>
+        <hr>
+        {% if loggedIn %}
+            <div class="col-md-6">
+                <form action="/comments/{{ car.id }}" method="POST">
+                    <fieldset>
+                        <legend>Add Comment</legend>
+                        <label class="form-label">comment: </label>
+                        <input type="text" name="note" class="form-control mb-1">
+                    </fieldset>
+                    <input type="submit" class="btn btn-success" value="add comment">
+                </form>
+            </div>
+        {% else %}
+            <div class="col-md-6">
+                <small>If you'd like to leave a comment, please log in...</small>
+            </div>
+        {% endif %}
+        <hr>
+        {% if car.comments.length > 0 %}
+            <div class="container-sm justify-content-center">
+                {% for comm in car.comments %}
+                    {% render '../comment.liquid', comm: comm, userId: userId, car: car %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <small>no comments yet...</small>
+        {% endif %}
+    </div>
+{% endblock %}
