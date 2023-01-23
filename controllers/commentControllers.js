@@ -2,7 +2,7 @@
 //// Import Dependencies         ////
 /////////////////////////////////////
 const express = require('express')
-const Car= require('../models/car')
+const Car = require('../models/car')
 
 /////////////////////////////////////
 //// Create Router               ////
@@ -41,15 +41,18 @@ router.post('/:carId', (req, res) => {
             })
             // respond with a 201 and the car itself
             .then(car => {
-                res.status(201).json({ car: car })
+                // res.status(201).json({ car: car })
+                res.redirect(`/cars/${car.id}`)
             })
             // catch and handle any errors
             .catch(err => {
                 console.log(err)
-                res.status(400).json(err)
+                // res.status(400).json(err)
+                res.redirect(`/error?error=${err}`)
             })
     } else {
-        res.sendStatus(401) //send a 401-unauthorized
+        // res.sendStatus(401) //send a 401-unauthorized
+        res.redirect(`/error?error=You%20Are%20not%20allowed%20to%20comment%20on%20this%20car`)
     }
 })
 
@@ -73,19 +76,23 @@ router.delete('/delete/:carId/:commId', (req, res) => {
                     // we can use another built in method - remove()
                     theComment.remove()
                     car.save()
-                    res.sendStatus(204) //send 204 no content
+                    // res.sendStatus(204) //send 204 no content
+                    res.redirect(`/cars/${car.id}`)
                 } else {
                     // otherwise send a 401 - unauthorized status
-                    res.sendStatus(401)
+                    // res.sendStatus(401)
+                    res.redirect(`/error?error=You%20Are%20not%20allowed%20to%20delete%20this%20comment`)
                 }
             } else {
                 // otherwise send a 401 - unauthorized status
-                res.sendStatus(401)
+                // res.sendStatus(401)
+                res.redirect(`/error?error=You%20Are%20not%20allowed%20to%20delete%20this%20comment`)
             }
         })
         .catch(err => {
             console.log(err)
-            res.status(400).json(err)
+            // res.status(400).json(err)
+            res.redirect(`/error?error=${err}`)
         })
 })
 
@@ -93,4 +100,4 @@ router.delete('/delete/:carId/:commId', (req, res) => {
 //////////////////////////////
 //// Export Router        ////
 //////////////////////////////
-module.exports = router/////////////////////////////////////
+module.exports = router

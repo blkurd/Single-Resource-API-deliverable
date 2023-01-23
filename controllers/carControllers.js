@@ -2,6 +2,8 @@
 //// Import Dependencies         ////
 /////////////////////////////////////
 const express = require('express')
+const axios = require('axios')
+require('dotenv').config()
 const Car = require('../models/car')
 
 /////////////////////////////////////
@@ -58,9 +60,9 @@ router.post('/', (req, res) => {
     // here we use a ternary operator to change the on value to send as true
     // otherwise, make that field false
     req.body.readyToEat = req.body.readyToEat === 'on' ? true : false
-    const newCar = req.body
-    console.log('this is req.body aka newCar, after owner\n', newCar)
-    Car.create(newCar)
+    const newcar = req.body
+    console.log('this is req.body aka newcar, after owner\n', newcar)
+    car.create(newcar)
         // send a 201 status, along with the json response of the new car
         .then(car => {
             // in the API server version of our code we sent json and a success msg
@@ -193,20 +195,24 @@ router.delete('/:id', (req, res) => {
 
 // SHOW route
 // Read -> finds and displays a single resource
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
     // get the id -> save to a variable
     const id = req.params.id
     // use a mongoose method to find using that id
     Car.findById(id)
         .populate('comments.author', 'username')
         // send the car as json upon success
-        .then(car => {
-            // res.json({ car: car })
-            res.render('cars/show.liquid', {car, ...req.session})
+        .then(async car => {
+            // res.json({car: car })
+            // console.log(process.env.CAR_URL)
+            const carInfo = await axios(`${process.env.CARY_URL}/${car.name}`)
+            console.log('carInfo', carInfo.data.nutritions)
+            // const carNutrients = carInfo.data.error ? false : carInfo.data.nutritions
+            res.render('cars/show.liquid', {car, carNutrients, ...req.session})
         })
         // catch any errors
         .catch(err => {
-            console.log(err)
+            console.log('the error', err)
             // res.status(404).json(err)
             res.redirect(`/error?error=${err}`)
         })
